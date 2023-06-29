@@ -93,8 +93,8 @@ map('world2Hires', c('usa', 'USSR'),
     fill=T,xlim=c(130,250), ylim=c(20,70),add=T, lwd=0.5, col="darkgoldenrod3")
 
 # now limit to pollock!
-trawl.data <- trawl.data %>%
-  filter(SID==21740)
+# trawl.data <- trawl.data %>%
+#   filter(SID==21740)
 
 sum(trawl.data$WTCPUE==0) # only 12 catches==0!
 # so need to process and distinguish 0 catches from did not sample!
@@ -103,8 +103,8 @@ sum(trawl.data$WTCPUE==0) # only 12 catches==0!
 # for now (!!) 
 # I'll drop 0 catches
 # so the following is only for positive catches
-drop <- trawl.data$WTCPUE==0
-trawl.data <- trawl.data[!drop,]
+# drop <- trawl.data$WTCPUE==0
+# trawl.data <- trawl.data[!drop,]
 
 # fit some spatial GAMs to cpue by era
 library(mgcv)
