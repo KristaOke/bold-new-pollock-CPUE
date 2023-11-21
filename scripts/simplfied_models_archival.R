@@ -1154,6 +1154,168 @@ AIC(ovrlp_smint_reml$lme, ovrlp_noint_reml$lme)
 
 
 
+#repeat without log(CPUE+1)============================
+
+#add a new column responding to reviewer comment
+
+sebs_shallower_180$logCPUE_minconstant <- log(sebs_shallower_180$WTCPUE + 0.0000001)
+
+#w ML
+
+cmod1_log_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                       s(BOT_TEMP, by=as.factor(period), bs="fs"),  random=list(YEAR_factor=~1), 
+                     correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                     data=sebs_shallower_180)
+#saveRDS(cmod1_log_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_corexp_sm_int_ML_log.RDS")
+cmod1_log_ML <- readRDS(file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_corexp_sm_int_ML_log.RDS")
+aic_smintlog <- AIC(cmod1_log_ML$lme)
+
+#
+clin_int_log_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                          BOT_TEMP:period,  random=list(YEAR_factor=~1), 
+                        correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                        data=sebs_shallower_180)
+#saveRDS(clin_int_log_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_lin_int_ML_log.RDS")
+clin_int_log_ML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_lin_int_ML_log.RDS")
+aic_linintlog <- AIC(clin_int_log_ML$lme)
+
+
+cmod1_noint_log_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                             s(BOT_TEMP),  random=list(YEAR_factor=~1), 
+                           correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                           data=sebs_shallower_180)
+saveRDS(cmod1_noint_log_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_no_int_ML_log.RDS")
+cmod1_noint_log_ML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_no_int_ML_log.RDS")
+aic_smlog <- AIC(cmod1_noint_log_ML$lme)
+
+AIC(cmod1_noint_log_ML$lme, clin_int_log_ML$lme, cmod1_log_ML$lme) #
+
+
+
+
+#as reml
+
+cmod1_noint_log <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                          s(BOT_TEMP),  random=list(YEAR_factor=~1), 
+                        correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="REML",
+                        data=sebs_shallower_180)
+saveRDS(cmod1_noint_log, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_no_int_log.RDS")
+cmod1_noint_log <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_no_int_log.RDS")
+
+
+gam.check(cmod1_noint_log$gam)
+summary(cmod1_noint_log$lme)
+summary(cmod1_noint_log$gam)
+plot(cmod1_noint_log$gam)
+v <- getViz(cmod1_noint_log$gam)
+plot(sm(v, 2)) + l_fitLine(alpha = 0.6)
+
+draw(cmod1_noint_log$gam, select=2) + theme_bw() + xlab("Bottom temperature (°C)") +
+  ylab("Partial effect on log(CPUE)") + ggtitle("")
+
+draw(cmod1_noint_log$gam, select=1) + theme_bw() + xlab("Bottom depth (m)") +
+  ylab("Partial effect on log(CPUE)") + ggtitle("")
+
+
+#for comparision
+cmod1_log_REML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                         s(BOT_TEMP, by=as.factor(period), bs="fs"),  random=list(YEAR_factor=~1), 
+                       correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="REML",
+                       data=sebs_shallower_180)
+#saveRDS(cmod1_log_REML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_corexp_sm_int_REML_log.RDS")
+cmod1_log_REML <- readRDS(file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_corexp_sm_int_REML_log.RDS")
+summary(cmod1_log_REML$gam)
+anova(cmod1_log_REML$gam)
+
+clin_int_log_REML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                            BOT_TEMP:period,  random=list(YEAR_factor=~1), 
+                          correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="REML",
+                          data=sebs_shallower_180)
+#saveRDS(clin_int_log_REML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_lin_int_REML_log.RDS")
+clin_int_log_REML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/new_lin_int_REML_log.RDS")
+summary(clin_int_log_REML$gam)
+anova(clin_int_log_REML$gam)
+
+library(mgcViz)
+
+v <- getViz(cmod1_log_REML$gam)
+
+plot(sm(v, 2)) + l_fitLine(alpha = 0.6)
+
+
+
+#model suggested by reviewer
+
+tvmod1log_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                    s(YEAR, by=BOT_TEMP),  random=list(YEAR_factor=~1), 
+                  correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                  data=sebs_shallower_180)
+saveRDS(tvmod1log_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var_ML_log.RDS")
+tvmod1log_ML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var_ML_log.RDS")
+aic_tvlog <- AIC(tvmod1log_ML$lme)
+gam.check(tvmod1log_ML$gam)
+summary(tvmod1log_ML$gam)
+anova(tvmod1log_ML$gam)
+plot(tvmod1log_ML$gam)
+
+tvmod2log_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                    t2(YEAR, BOT_TEMP),  random=list(YEAR_factor=~1), 
+                  correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                  data=sebs_shallower_180)
+saveRDS(tvmod2log_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var2_ML_log.RDS")
+tvmod2log_ML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var2_ML_log.RDS")
+aic_tv2log <- AIC(tvmod2log_ML$lme)
+gam.check(tvmod2log_ML$gam)
+summary(tvmod2log_ML$gam)
+anova(tvmod2log_ML$gam)
+plot(tvmod2log_ML$gam)
+
+AIC(cmod1_noint_log_ML$lme, clin_int_log_ML$lme, cmod1_log_ML$lme, tvmod2log_ML$lme)
+anova(cmod1_noint_log_ML$lme, clin_int_log_ML$lme, cmod1_log_ML$lme, tvmod2log_ML$lme)
+
+tvmod2log_REML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                      t2(YEAR, BOT_TEMP),  random=list(YEAR_factor=~1), 
+                    correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="REML",
+                    data=sebs_shallower_180)
+saveRDS(tvmod2log_REML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var2_REML_log.RDS")
+tvmod2log_REML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_var2_REML_log.RDS")
+draw(tvmod2log_REML$gam, select=2, dist=0.05)
+summary(tvmod2log_REML$gam)
+
+#ONCE MORE w te not t2
+tvtelog_ML <- gamm(logCPUE_minconstant ~  s(BOT_DEPTH) +
+                  te(YEAR, BOT_TEMP),  random=list(YEAR_factor=~1), 
+                correlation = corExp(form=~ long_albers + lat_albers|YEAR_factor, nugget=TRUE), method="ML",
+                data=sebs_shallower_180)
+saveRDS(tvtelog_ML, file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_varTE_ML_log.RDS")
+tvtelog_ML <- readRDS( file="~/Dropbox/Work folder/Pollock Analyses/bold-new-pollock/scripts/time_varTE_ML_log.RDS")
+aic_tvtelog <- AIC(tvtelog_ML$lme)
+gam.check(tvtelog_ML$gam)
+summary(tvtelog_ML$gam)
+anova(tvtelog_ML$gam)
+plot(tvtelog_ML$gam)
+
+AIC(cmod1_noint_log_ML$lme, clin_int_log_ML$lme, cmod1_log_ML$lme, tvmod2log_ML$lme, tvtelog_ML$lme)
+anova(cmod1_noint_log_ML$lme, clin_int_log_ML$lme, cmod1_log_ML$lme, tvmod2log_ML$lme)
+
+
+#akaike weights 
+#tv is lowest
+delta_tvlog <-  0
+delta_smlog <- aic_smlog - aic_tv2log
+delta_smintlog <- aic_smintlog - aic_tv2log
+delta_linintlog <- aic_linintlog - aic_tv2log
+
+
+#UPDATE BELOW
+# akaike weights
+sumbinaic <- sum(exp(-0.5*delta_smooth), exp(-0.5*delta_smint), exp(-0.5*delta_linint), exp(-0.5*delta_tv)) 
+# 
+aw_smoothint <- exp(-0.5*delta_smint)/sumbinaic
+aw_smooth <- exp(-0.5*delta_smooth)/sumbinaic
+aw_linint <- exp(-0.5*delta_linint)/sumbinaic
+aw_tv <- exp(-0.5*delta_tv)/sumbinaic
+
 
 
 
